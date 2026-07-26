@@ -1,5 +1,5 @@
 /**
- * DEAD SHIFT - Main Game Loop & Production State Machine
+ * DEAD SHIFT - Main Game Loop, Touch Overlay & Production State Machine
  */
 import { Player } from './player.js';
 import { Weapon, WEAPON_REGISTRY } from './weapon.js';
@@ -122,6 +122,11 @@ class GameEngine {
         document.getElementById('btnResume').addEventListener('click', () => this.resumeGame());
         document.getElementById('btnReturnMenuPause').addEventListener('click', () => this.showMenu());
 
+        const touchPause = document.getElementById('touchPauseBtn');
+        if (touchPause) {
+            touchPause.addEventListener('click', () => this.pauseGame());
+        }
+
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Escape' && this.state === 'PLAYING') {
                 this.pauseGame();
@@ -133,12 +138,18 @@ class GameEngine {
         this.state = 'MAIN_MENU';
         audioManager.stopMusic();
         document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('touchOverlay').classList.add('hidden');
         document.getElementById('mainMenu').classList.add('active');
     }
 
     startNewRun() {
         document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
         document.getElementById('hud').classList.add('active');
+
+        // Show Touch Controls Overlay on touch devices or small screens
+        if ('ontouchstart' in window || window.innerWidth < 1024) {
+            document.getElementById('touchOverlay').classList.remove('hidden');
+        }
 
         const mapDef = MAPS_REGISTRY.find(m => m.id === this.selectedMapId) || MAPS_REGISTRY[0];
         this.map = new MapEnvironment(mapDef);
@@ -198,6 +209,7 @@ class GameEngine {
         this.state = 'GAME_OVER';
         audioManager.stopMusic();
         saveManager.addCoins(this.player.coins);
+        document.getElementById('touchOverlay').classList.add('hidden');
         document.getElementById('gameOverModal').classList.remove('hidden');
         document.getElementById('gameOverSubtitle').innerText = `Survived Wave ${this.wave} in ${this.map.name} | Coins Earned: ${this.player.coins}`;
     }
@@ -260,7 +272,6 @@ class GameEngine {
             newProjs.forEach(p => this.projectiles.push(p));
         }
 
-        // Update Player Projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const p = this.projectiles[i];
             p.update(dt);
@@ -312,7 +323,6 @@ class GameEngine {
             }
         }
 
-        // Update Enemy Spit Projectiles
         for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
             const ep = this.enemyProjectiles[i];
             ep.x += ep.vx * dt * 60;
@@ -330,7 +340,6 @@ class GameEngine {
             }
         }
 
-        // Update Enemies
         this.spawnWaveEnemies(dt);
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const enemy = this.enemies[i];
@@ -422,6 +431,20 @@ class GameEngine {
         }
     }
 
+    renderVignette() {
+        const fctx = this.fxCtx;
+        const w = this.fxCanvas.width;
+        const h = this.fxCanvas.height;
+        fctx.clearRect(0, 0, w, h);
+
+        const grad = fctx.createRadialGradient(w / 2, h / 2, Math.max(w, h) * 0.4, w / 2, h / 2, Math.max(w, h) * 0.85);
+        grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        grad.addColorStop(1, 'rgba(5, 11, 20, 0.7)');
+
+        fctx.fillStyle = grad;
+        fctx.fillRect(0, 0, w, h);
+    }
+
     render() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -439,7 +462,6 @@ class GameEngine {
             particleManager.draw(this.ctx);
             this.projectiles.forEach(p => p.draw(this.ctx));
 
-            // Render Enemy Projectiles
             this.enemyProjectiles.forEach(ep => {
                 this.ctx.fillStyle = ep.color || '#22c55e';
                 this.ctx.beginPath();
@@ -455,6 +477,8 @@ class GameEngine {
 
             this.ctx.restore();
             this.ctx.restore();
+
+            this.renderVignette();
         }
     }
 }

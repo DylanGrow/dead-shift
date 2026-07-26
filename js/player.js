@@ -1,5 +1,5 @@
 /**
- * DEAD SHIFT - Player Entity, Character Classes & 21 Stats Engine
+ * DEAD SHIFT - Player Entity, Character Classes, Touch Controls & 21 Stats Engine
  */
 import { Vec2 } from './physics.js';
 import { SpriteRenderer } from './sprites.js';
@@ -8,7 +8,7 @@ import { audioManager } from './audio.js';
 import { saveManager } from './save.js';
 
 export const CHARACTER_CLASSES = [
-    { id: 'commando', name: 'Commando', desc: 'Balanced combat specialist. Starts with M1911 & Assault Rifle', icon: '🪖', hpMod: 1.2, armorMod: 2, moveMod: 1.0 },
+    { id: 'commando', name: 'Commando', desc: 'Balanced combat specialist. Starts with M1911 & AK-47 Rifle', icon: '🪖', hpMod: 1.2, armorMod: 2, moveMod: 1.0 },
     { id: 'pyro', name: 'Pyro Tech', desc: 'Flame expert. Starts with Flamethrower & Fire damage bonus', icon: '🔥', hpMod: 1.0, armorMod: 0, moveMod: 1.1 },
     { id: 'ninja', name: 'Cyber Ninja', desc: 'Blade assassin. Starts with Ronin Katana & +30% Move Speed', icon: '🥷', hpMod: 0.9, armorMod: 0, moveMod: 1.3 },
     { id: 'demolitionist', name: 'Demolitionist', desc: 'Explosive expert. Starts with RPG-7 & Heavy Armor', icon: '💣', hpMod: 1.4, armorMod: 4, moveMod: 0.9 }
@@ -61,7 +61,7 @@ export class Player {
         this.xp = 0;
         this.nextLevelXP = 100;
 
-        // Dual Weapon Slots [Primary (0), Secondary (1)]
+        // Dual Weapon Slots
         this.weapons = [];
         this.activeWeaponIndex = 0;
 
@@ -69,9 +69,12 @@ export class Player {
         this.keysPressed = {};
         this.mousePos = { x: 0, y: 0 };
         this.touchMoveVector = { x: 0, y: 0 };
+        this.touchAimVector = { x: 0, y: 0 };
         this.isMouseDown = false;
+        this.isTouchAiming = false;
 
         this.setupInputListeners();
+        this.setupTouchListeners();
         this.applyPurchasedPassives();
     }
 
@@ -91,8 +94,6 @@ export class Player {
         window.addEventListener('keydown', (e) => {
             this.keysPressed[e.code] = true;
             if (e.code === 'Space') this.triggerDash();
-
-            // Weapon Swapping Shortcuts
             if (e.code === 'Digit1') this.switchWeapon(0);
             if (e.code === 'Digit2') this.switchWeapon(1);
         });
@@ -115,6 +116,104 @@ export class Player {
         });
     }
 
+    setupTouchListeners() {
+        const leftBase = document.getElementById('touchBaseLeft');
+        const leftStick = document.getElementById('touchStickLeft');
+        const rightBase = document.getElementById('touchBaseRight');
+        const rightStick = document.getElementById('touchStickRight');
+        const dashBtn = document.getElementById('touchDashBtn');
+        const swapBtn = document.getElementById('touchSwapBtn');
+
+        let leftTouchId = null;
+        let rightTouchId = null;
+
+        window.addEventListener('touchstart', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                const lRect = leftBase ? leftBase.getBoundingClientRect() : null;
+                const rRect = rightBase ? rightBase.getBoundingClientRect() : null;
+
+                if (lRect && Vec2.dist(t.clientX, t.clientY, lRect.left + 65, lRect.top + 65) < 90 && leftTouchId === null) {
+                    leftTouchId = t.identifier;
+                } else if (rRect && Vec2.dist(t.clientX, t.clientY, rRect.left + 65, rRect.top + 65) < 90 && rightTouchId === null) {
+                    rightTouchId = t.identifier;
+                    this.isTouchAiming = true;
+                }
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            for (let i = 0; i < e.touches.length; i++) {
+                const t = e.touches[i];
+                if (t.identifier === leftTouchId && leftBase) {
+                    const lRect = leftBase.getBoundingClientRect();
+                    const dx = t.clientX - (lRect.left + 65);
+                    const dy = t.clientY - (lRect.top + 65);
+                    const len = Math.hypot(dx, dy);
+                    const maxDist = 45;
+                    const clampedLen = Math.min(len, maxDist);
+                    const angle = Math.atan2(dy, dx);
+
+                    const knobX = Math.cos(angle) * clampedLen;
+                    const knobY = Math.sin(angle) * clampedLen;
+                    leftStick.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+                    this.touchMoveVector.x = Math.cos(angle);
+                    this.touchMoveVector.y = Math.sin(angle);
+                } else if (t.identifier === rightTouchId && rightBase) {
+                    const rRect = rightBase.getBoundingClientRect();
+                    const dx = t.clientX - (rRect.left + 65);
+                    const dy = t.clientY - (rRect.top + 65);
+                    const len = Math.hypot(dx, dy);
+                    const maxDist = 45;
+                    const clampedLen = Math.min(len, maxDist);
+                    const angle = Math.atan2(dy, dx);
+
+                    const knobX = Math.cos(angle) * clampedLen;
+                    const knobY = Math.sin(angle) * clampedLen;
+                    rightStick.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+                    this.touchAimVector.x = Math.cos(angle);
+                    this.touchAimVector.y = Math.sin(angle);
+                }
+            }
+        });
+
+        const resetTouch = (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if (t.identifier === leftTouchId) {
+                    leftTouchId = null;
+                    leftStick.style.transform = 'translate(0px, 0px)';
+                    this.touchMoveVector.x = 0;
+                    this.touchMoveVector.y = 0;
+                } else if (t.identifier === rightTouchId) {
+                    rightTouchId = null;
+                    rightStick.style.transform = 'translate(0px, 0px)';
+                    this.touchAimVector.x = 0;
+                    this.touchAimVector.y = 0;
+                    this.isTouchAiming = false;
+                }
+            }
+        };
+
+        window.addEventListener('touchend', resetTouch);
+        window.addEventListener('touchcancel', resetTouch);
+
+        if (dashBtn) {
+            dashBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.triggerDash();
+            });
+        }
+        if (swapBtn) {
+            swapBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.switchWeapon(this.activeWeaponIndex === 0 ? 1 : 0);
+            });
+        }
+    }
+
     switchWeapon(index) {
         if (this.weapons[index]) {
             this.activeWeaponIndex = index;
@@ -129,7 +228,7 @@ export class Player {
             this.dashTimer = 0.25;
             this.dashCooldown = 1.2;
             audioManager.playShot('melee');
-            particleManager.spawnBurst(this.x, this.y, '#3b82f6', 10, 4, 3);
+            particleManager.spawnBurst(this.x, this.y, '#38bdf8', 10, 4, 3);
         }
     }
 
@@ -219,7 +318,9 @@ export class Player {
         this.y = Vec2.clamp(this.y, this.radius + mapBounds.minY, mapBounds.maxY - this.radius);
 
         const s = saveManager.data.settings;
-        if (s.autoAim && enemies.length > 0) {
+        if (this.isTouchAiming) {
+            this.rotation = Math.atan2(this.touchAimVector.y, this.touchAimVector.x);
+        } else if (s.autoAim && enemies.length > 0) {
             let closestDist = Infinity;
             let targetEnemy = null;
             for (const enemy of enemies) {
@@ -241,7 +342,7 @@ export class Player {
         const activeWep = this.getActiveWeapon();
         if (activeWep) {
             activeWep.update(dt, this);
-            if ((this.isMouseDown || s.autoFire) && activeWep.canFire()) {
+            if ((this.isMouseDown || this.isTouchAiming || s.autoFire) && activeWep.canFire()) {
                 activeWep.fire(this);
             }
         }
@@ -252,7 +353,6 @@ export class Player {
     draw(ctx) {
         const s = saveManager.data.settings;
 
-        // Render Dynamic Flashlight Cone if enabled
         if (s.settingFlashlight !== false) {
             SpriteRenderer.drawFlashlightCone(ctx, this);
         }
