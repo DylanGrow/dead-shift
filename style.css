@@ -1,10 +1,10 @@
-/* DEAD SHIFT - Ultra-Sleek Glassmorphic Neon Aesthetic */
+/* DEAD SHIFT - Masterclass Visual Design & Cyber Effects Theme */
 :root {
     --bg-dark: #030712;
-    --card-bg: rgba(15, 23, 42, 0.78);
-    --card-hover: rgba(30, 41, 59, 0.9);
-    --border-color: rgba(56, 189, 248, 0.3);
-    --border-hover: rgba(56, 189, 248, 0.7);
+    --card-bg: rgba(15, 23, 42, 0.82);
+    --card-hover: rgba(30, 41, 59, 0.95);
+    --border-color: rgba(56, 189, 248, 0.35);
+    --border-hover: rgba(56, 189, 248, 0.85);
     --primary-cyan: #06b6d4;
     --primary-glow: #38bdf8;
     --primary-magenta: #ec4899;
@@ -26,6 +26,23 @@
     -webkit-user-select: none;
     touch-action: manipulation;
     -webkit-font-smoothing: antialiased;
+}
+
+/* CRT Scanlines Overlay */
+.scanlines-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.15) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.7;
 }
 
 /* Sleek Scrollbar */
@@ -99,7 +116,6 @@ html, body {
     display: flex;
 }
 
-/* Glassmorphic Buttons */
 .btn {
     padding: 14px 28px;
     font-size: 0.95rem;
@@ -122,7 +138,7 @@ html, body {
 .btn:hover {
     transform: translateY(-2px) scale(1.02);
     border-color: var(--border-hover);
-    box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
     background: var(--card-hover);
 }
 
@@ -139,11 +155,11 @@ html, body {
 
 .btn-primary:hover {
     background: linear-gradient(135deg, #38bdf8, #0284c7);
-    box-shadow: 0 0 30px rgba(56, 189, 248, 0.8);
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.85);
 }
 
 .btn-secondary {
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(15, 23, 42, 0.75);
 }
 
 .btn-large {
@@ -217,7 +233,7 @@ html, body {
 
 .character-card:hover, .map-card:hover, .character-card.selected, .map-card.selected {
     border-color: var(--primary-glow);
-    box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
     transform: translateY(-6px) scale(1.02);
     background: var(--card-hover);
 }
@@ -303,6 +319,15 @@ html, body {
     backdrop-filter: blur(12px);
 }
 
+.health-bar-container.low-hp {
+    animation: emergencyPulse 1s infinite alternate;
+}
+
+@keyframes emergencyPulse {
+    0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.5); border-color: #ef4444; }
+    100% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.95); border-color: #f87171; }
+}
+
 .bar-fill {
     height: 100%;
     transition: width 0.15s ease-out;
@@ -317,7 +342,14 @@ html, body {
     top: 0;
     left: 0;
     background: linear-gradient(90deg, #0284c7, #38bdf8);
-    opacity: 0.8;
+    opacity: 0.85;
+    animation: shieldShimmer 2s infinite linear;
+}
+
+@keyframes shieldShimmer {
+    0% { opacity: 0.7; }
+    50% { opacity: 1.0; }
+    100% { opacity: 0.7; }
 }
 
 .stamina-fill {

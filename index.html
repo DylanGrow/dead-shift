@@ -16,6 +16,9 @@
 </head>
 <body>
     <div id="app" role="main">
+        <!-- Scanline Cyber Overlay -->
+        <div class="scanlines-overlay"></div>
+
         <!-- Main Game Canvas -->
         <canvas id="gameCanvas" aria-label="Game Canvas"></canvas>
 
@@ -42,7 +45,7 @@
                 </div>
 
                 <div class="menu-footer">
-                    <span>v2.5 Government Grade Edition | Pure Client-Side Zero CDN Engine</span>
+                    <span>v2.5 Master Edition | Pure Client-Side Zero CDN Engine</span>
                 </div>
             </div>
 
@@ -100,7 +103,7 @@
             <div id="hud" class="ui-screen" role="region" aria-label="In Game Heads Up Display">
                 <div class="hud-top">
                     <div class="hud-left">
-                        <div class="stat-bar health-bar-container">
+                        <div class="stat-bar health-bar-container" id="hudHealthContainer">
                             <div class="bar-fill health-fill" id="hudHealthBar"></div>
                             <div class="bar-fill shield-fill" id="hudShieldBar"></div>
                             <span class="bar-text" id="hudHealthText">100 / 100</span>

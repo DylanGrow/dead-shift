@@ -1,13 +1,19 @@
 /**
- * DEAD SHIFT - Zero-XSS Safe UI & Screen Manager
- * Uses strict DOM element creation (document.createElement/textContent) to eliminate XSS vectors.
+ * DEAD SHIFT - Zero-XSS Safe UI, Screen Manager & Tactile Audio Feedback
  */
 import { saveManager } from './save.js';
 import { PerkManager } from './perks.js';
 import { CHARACTER_CLASSES } from './player.js';
 import { MAPS_REGISTRY } from './maps.js';
+import { audioManager } from './audio.js';
 
 export class UIManager {
+    static bindHoverSounds() {
+        document.querySelectorAll('.btn, .character-card, .map-card, .perk-card, .shop-item-card').forEach(el => {
+            el.addEventListener('mouseenter', () => audioManager.playHoverTick());
+        });
+    }
+
     static spawnFloatingText(x, y, text, color = '#ffffff', isCrit = false) {
         const s = saveManager.data.settings;
         if (!s.showDamageNumbers) return;
@@ -50,11 +56,10 @@ export class UIManager {
         }, 3000);
     }
 
-    // Safe DOM creation for Character Select
     static renderCharacterSelect(onSelectCallback) {
         const grid = document.getElementById('characterCardsGrid');
         if (!grid) return;
-        grid.replaceChildren(); // Clear safely
+        grid.replaceChildren();
 
         CHARACTER_CLASSES.forEach(c => {
             const card = document.createElement('div');
@@ -79,6 +84,7 @@ export class UIManager {
             card.appendChild(titleDiv);
             card.appendChild(descDiv);
 
+            card.addEventListener('mouseenter', () => audioManager.playHoverTick());
             card.addEventListener('click', () => {
                 if (onSelectCallback) onSelectCallback(c.id);
             });
@@ -87,7 +93,6 @@ export class UIManager {
         });
     }
 
-    // Safe DOM creation for Map Select
     static renderMapSelect(onSelectCallback) {
         const grid = document.getElementById('mapCardsGrid');
         if (!grid) return;
@@ -116,6 +121,7 @@ export class UIManager {
             card.appendChild(titleDiv);
             card.appendChild(descDiv);
 
+            card.addEventListener('mouseenter', () => audioManager.playHoverTick());
             card.addEventListener('click', () => {
                 if (onSelectCallback) onSelectCallback(m.id);
             });
@@ -124,7 +130,6 @@ export class UIManager {
         });
     }
 
-    // Safe DOM creation for Achievements
     static renderAchievements() {
         const container = document.getElementById('achievementsContainer');
         if (!container) return;
@@ -158,6 +163,7 @@ export class UIManager {
             card.appendChild(titleDiv);
             card.appendChild(descDiv);
 
+            card.addEventListener('mouseenter', () => audioManager.playHoverTick());
             container.appendChild(card);
         });
     }
@@ -166,9 +172,16 @@ export class UIManager {
         const hpBar = document.getElementById('hudHealthBar');
         const shBar = document.getElementById('hudShieldBar');
         const hpText = document.getElementById('hudHealthText');
+        const hpContainer = document.getElementById('hudHealthContainer');
 
         const hpPct = Math.max(0, (player.health / player.maxHealth) * 100);
         if (hpBar) hpBar.style.width = `${hpPct}%`;
+
+        // Low Health Emergency Pulse Trigger
+        if (hpContainer) {
+            if (hpPct <= 30) hpContainer.classList.add('low-hp');
+            else hpContainer.classList.remove('low-hp');
+        }
 
         if (player.maxShield > 0) {
             const shPct = Math.max(0, (player.shield / player.maxShield) * 100);
@@ -270,7 +283,6 @@ export class UIManager {
         }
     }
 
-    // Safe DOM creation for Perks
     static renderPerkModal(player, onSelectCallback) {
         const perkModal = document.getElementById('perkModal');
         const container = document.getElementById('perkCardsContainer');
@@ -304,6 +316,7 @@ export class UIManager {
                 card.appendChild(nameDiv);
                 card.appendChild(descDiv);
 
+                card.addEventListener('mouseenter', () => audioManager.playHoverTick());
                 card.addEventListener('click', () => {
                     PerkManager.applyPerk(player, p);
                     perkModal.classList.add('hidden');
@@ -329,5 +342,10 @@ export class UIManager {
         }
     }
 }
+
+// Bind hover audio feedback on DOM load
+window.addEventListener('DOMContentLoaded', () => {
+    UIManager.bindHoverSounds();
+});
 
 export const uiManager = new UIManager();

@@ -1,6 +1,6 @@
 /**
  * DEAD SHIFT - Web Audio API Procedural Synthesizer
- * Zero external audio file dependencies. Synthesizes crisp SFX and dynamic combat music.
+ * Zero external audio file dependencies. Synthesizes crisp SFX, hover ticks, and dynamic combat music.
  */
 import { saveManager } from './save.js';
 
@@ -12,7 +12,6 @@ class AudioManager {
         this.musicGain = null;
         this.initialized = false;
 
-        // Dynamic Music State
         this.isPlayingMusic = false;
         this.musicStep = 0;
         this.musicInterval = null;
@@ -54,7 +53,28 @@ class AudioManager {
         this.musicGain.gain.value = s.musicVolume / 100;
     }
 
-    // --- PROCEDURAL SFX GENERATION ---
+    playHoverTick() {
+        this.init();
+        this.resumeCtx();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.03);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+        osc.connect(gain);
+        gain.connect(this.sfxGain);
+
+        osc.start(now);
+        osc.stop(now + 0.03);
+    }
 
     playShot(type = 'pistol') {
         this.init();
@@ -100,7 +120,6 @@ class AudioManager {
             osc.start(now);
             osc.stop(now + 0.1);
         } else {
-            // Default Pistol / SMG
             osc.type = 'square';
             osc.frequency.setValueAtTime(300, now);
             osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
@@ -144,8 +163,8 @@ class AudioManager {
         const gain = this.ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, now); // C5
-        osc.frequency.setValueAtTime(659.25, now + 0.06); // E5
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.06);
 
         gain.gain.setValueAtTime(0.2, now);
         gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
@@ -162,7 +181,7 @@ class AudioManager {
         this.resumeCtx();
         if (!this.ctx) return;
 
-        const notes = [440, 554.37, 659.25, 880]; // A4, C#5, E5, A5
+        const notes = [440, 554.37, 659.25, 880];
         notes.forEach((freq, idx) => {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
@@ -205,8 +224,6 @@ class AudioManager {
         osc.stop(now + 0.05);
     }
 
-    // --- DYNAMIC COMBAT MUSIC SYNTHESIZER ---
-
     startMusic() {
         if (this.isPlayingMusic) return;
         this.init();
@@ -231,7 +248,6 @@ class AudioManager {
         const step = this.musicStep % 16;
         const now = this.ctx.currentTime;
 
-        // Kick drum on 0, 4, 8, 12
         if (step % 4 === 0) {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
@@ -245,7 +261,6 @@ class AudioManager {
             osc.stop(now + 0.1);
         }
 
-        // Bassline synth
         const bassNotes = [110, 110, 130.81, 110, 146.83, 110, 130.81, 98.00];
         if (step % 2 === 0) {
             const freq = bassNotes[(step / 2) % bassNotes.length];
