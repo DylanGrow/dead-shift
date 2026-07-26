@@ -1,0 +1,18 @@
+{
+  "name": "Dead Shift - Zombie Survival Roguelite",
+  "short_name": "Dead Shift",
+  "description": "Top-down zombie survival roguelite browser game with 40+ weapons, 150+ perks, and 15 maps.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230f172a'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='260' fill='%23ef4444'>☠️</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
