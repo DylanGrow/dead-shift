@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Dead Shift - AAA Top-down zombie survival roguelite browser game. Fight hordes with 40+ weapons, 150+ perks across 15 handcrafted maps.">
+    <meta name="description" content="Dead Shift - Production Quality Top-down Zombie Survival Roguelite Browser Game. 40+ weapons, 30 enemy types, 150+ perks, 15 maps.">
     <meta name="theme-color" content="#0f172a">
     <title>DEAD SHIFT - Zombie Survival Roguelite</title>
     <link rel="manifest" href="manifest.json">
@@ -24,19 +24,20 @@
             <div id="mainMenu" class="ui-screen active">
                 <div class="logo-container">
                     <h1 class="glitch-title">DEAD SHIFT</h1>
-                    <p class="subtitle">AAA TOP-DOWN ZOMBIE SURVIVAL ROGUELITE</p>
+                    <p class="subtitle">PRODUCTION-READY ZOMBIE SURVIVAL ROGUELITE</p>
                 </div>
                 
                 <div class="menu-buttons">
                     <button id="btnPlay" class="btn btn-primary btn-large">START MISSION</button>
                     <button id="btnCharacterSelect" class="btn btn-secondary">SELECT OPERATIVE</button>
-                    <button id="btnShop" class="btn btn-secondary">ARMORY & UPGRADES</button>
                     <button id="btnMapSelect" class="btn btn-secondary">MAP SELECT & MUTATORS</button>
+                    <button id="btnShop" class="btn btn-secondary">ARMORY & UPGRADES</button>
+                    <button id="btnAchievements" class="btn btn-secondary">ACHIEVEMENTS & STATS</button>
                     <button id="btnSettings" class="btn btn-secondary">SETTINGS & ACCESSIBILITY</button>
                 </div>
 
                 <div class="menu-footer">
-                    <span>v1.2.0 AAA Master Edition | Pure Client-Side HTML5 Canvas</span>
+                    <span>v1.5.0 Production Gold Edition | Pure Client-Side HTML5 Canvas Engine</span>
                 </div>
             </div>
 
@@ -45,15 +46,53 @@
                 <div class="screen-header">
                     <h2>SELECT OPERATIVE</h2>
                 </div>
-                <div class="character-cards-grid" id="characterCardsGrid">
-                    <!-- Dynamic Character Cards -->
-                </div>
+                <div class="character-cards-grid" id="characterCardsGrid"></div>
                 <button id="btnCharBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+            </div>
+
+            <!-- MAP SELECT & MUTATORS SCREEN -->
+            <div id="mapSelectScreen" class="ui-screen">
+                <div class="screen-header">
+                    <h2>TACTICAL MAP SELECTION</h2>
+                </div>
+                <div class="map-cards-grid" id="mapCardsGrid"></div>
+                <div class="map-settings-panel">
+                    <h3>DIFFICULTY MUTATORS</h3>
+                    <div class="difficulty-selector">
+                        <button class="diff-btn active" data-diff="normal">NORMAL (1.0x)</button>
+                        <button class="diff-btn" data-diff="hard">HARD (1.5x COINS)</button>
+                        <button class="diff-btn" data-diff="nightmare">NIGHTMARE (2.0x COINS)</button>
+                        <button class="diff-btn" data-diff="insane">INSANE (3.0x COINS)</button>
+                    </div>
+                </div>
+                <button id="btnMapBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+            </div>
+
+            <!-- SHOP & ARMORY SCREEN -->
+            <div id="shopScreen" class="ui-screen">
+                <div class="screen-header">
+                    <h2>ARMORY & META-PROGRESSION</h2>
+                    <div class="currency-group">
+                        <span>🪙 COINS: <strong id="shopCoinsText">0</strong></span>
+                    </div>
+                </div>
+                <div class="shop-grid">
+                    <div class="shop-content-area" id="shopContentArea"></div>
+                </div>
+                <button id="btnShopBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+            </div>
+
+            <!-- ACHIEVEMENTS & STATS SCREEN -->
+            <div id="achievementsScreen" class="ui-screen">
+                <div class="screen-header">
+                    <h2>ACHIEVEMENTS & LIFETIME STATS</h2>
+                </div>
+                <div class="achievements-container" id="achievementsContainer"></div>
+                <button id="btnAchievementsBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
             </div>
 
             <!-- IN-GAME HUD -->
             <div id="hud" class="ui-screen">
-                <!-- Top Status Bar -->
                 <div class="hud-top">
                     <div class="hud-left">
                         <div class="stat-bar health-bar-container">
@@ -129,7 +168,6 @@
                     </div>
                 </div>
 
-                <!-- Minimap -->
                 <canvas id="minimapCanvas" width="160" height="160"></canvas>
             </div>
 
@@ -139,9 +177,7 @@
                     <h2>LEVEL UP! SELECT A PERK</h2>
                     <p class="subtitle">Choose 1 of 3 augmentations to enhance your build</p>
                     
-                    <div class="perk-cards-container" id="perkCardsContainer">
-                        <!-- Dynamic Perk Cards -->
-                    </div>
+                    <div class="perk-cards-container" id="perkCardsContainer"></div>
 
                     <div class="perk-actions">
                         <button id="btnRerollPerks" class="btn btn-secondary">REROLL (<span id="rerollCount">2</span>)</button>
@@ -150,40 +186,17 @@
                 </div>
             </div>
 
-            <!-- SHOP & ARMORY SCREEN -->
-            <div id="shopScreen" class="ui-screen">
-                <div class="screen-header">
-                    <h2>ARMORY & META-PROGRESSION</h2>
-                    <div class="currency-group">
-                        <span>🪙 COINS: <strong id="shopCoinsText">0</strong></span>
+            <!-- CRATE INTERACTION MODAL -->
+            <div id="crateModal" class="modal-overlay hidden">
+                <div class="modal-content crate-modal-content">
+                    <h2 id="crateTitle">MILITARY SUPPLY CRATE</h2>
+                    <div class="crate-icon-preview" id="crateIconPreview">📦</div>
+                    <p id="crateDescription">Unlocks tier 3 weapons and rare components.</p>
+                    <div class="crate-buttons">
+                        <button id="btnOpenCrate" class="btn btn-primary">OPEN CRATE</button>
+                        <button id="btnCloseCrate" class="btn btn-secondary">CANCEL</button>
                     </div>
                 </div>
-                <div class="shop-grid">
-                    <div class="shop-content-area" id="shopContentArea">
-                        <!-- Shop passives injected -->
-                    </div>
-                </div>
-                <button id="btnShopBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
-            </div>
-
-            <!-- MAP SELECT & MUTATORS SCREEN -->
-            <div id="mapSelectScreen" class="ui-screen">
-                <div class="screen-header">
-                    <h2>TACTICAL MAP SELECTION</h2>
-                </div>
-                <div class="map-cards-grid" id="mapCardsGrid">
-                    <!-- Map cards injected dynamically -->
-                </div>
-                <div class="map-settings-panel">
-                    <h3>DIFFICULTY MUTATORS</h3>
-                    <div class="difficulty-selector">
-                        <button class="diff-btn active" data-diff="normal">NORMAL (1.0x)</button>
-                        <button class="diff-btn" data-diff="hard">HARD (1.5x COINS)</button>
-                        <button class="diff-btn" data-diff="nightmare">NIGHTMARE (2.0x COINS)</button>
-                        <button class="diff-btn" data-diff="insane">INSANE (3.0x COINS)</button>
-                    </div>
-                </div>
-                <button id="btnMapBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
             </div>
 
             <!-- SETTINGS & ACCESSIBILITY SCREEN -->

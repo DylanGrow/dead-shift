@@ -1,9 +1,10 @@
 /**
- * DEAD SHIFT - UI, HUD & Screen Manager
+ * DEAD SHIFT - UI, HUD, Modals & Screen Manager
  */
 import { saveManager } from './save.js';
 import { PerkManager } from './perks.js';
 import { CHARACTER_CLASSES } from './player.js';
+import { MAPS_REGISTRY } from './maps.js';
 
 export class UIManager {
     static spawnFloatingText(x, y, text, color = '#ffffff', isCrit = false) {
@@ -68,6 +69,55 @@ export class UIManager {
         });
     }
 
+    static renderMapSelect(onSelectCallback) {
+        const grid = document.getElementById('mapCardsGrid');
+        let html = '';
+        MAPS_REGISTRY.forEach(m => {
+            html += `
+                <div class="map-card" data-map="${m.id}">
+                    <div class="char-icon">🗺️</div>
+                    <div class="char-title">${m.name}</div>
+                    <div class="char-desc">Area: ${m.width}x${m.height}</div>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
+
+        grid.querySelectorAll('.map-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const mapId = e.currentTarget.getAttribute('data-map');
+                if (onSelectCallback) onSelectCallback(mapId);
+            });
+        });
+    }
+
+    static renderAchievements() {
+        const container = document.getElementById('achievementsContainer');
+        const st = saveManager.data.stats;
+        container.innerHTML = `
+            <div class="achievement-card">
+                <div class="char-icon">💀</div>
+                <div class="char-title">TOTAL KILLS</div>
+                <div class="char-desc">${st.totalKills || 0} Defeated Zombies</div>
+            </div>
+            <div class="achievement-card">
+                <div class="char-icon">👑</div>
+                <div class="char-title">BOSSES DEFEATED</div>
+                <div class="char-desc">${st.bossKills || 0} Defeated Bosses</div>
+            </div>
+            <div class="achievement-card">
+                <div class="char-icon">🏆</div>
+                <div class="char-title">HIGH SCORE</div>
+                <div class="char-desc">${st.highScore || 0} Points</div>
+            </div>
+            <div class="achievement-card">
+                <div class="char-icon">🪙</div>
+                <div class="char-title">COINS EARNED</div>
+                <div class="char-desc">${st.totalCoinsEarned || 0} Lifetime Coins</div>
+            </div>
+        `;
+    }
+
     updateHUD(player, wave, waveTimer, fps, dps, activeEvent = null, boss = null) {
         const hpBar = document.getElementById('hudHealthBar');
         const shBar = document.getElementById('hudShieldBar');
@@ -103,7 +153,6 @@ export class UIManager {
         document.getElementById('hudFPS').innerText = `${Math.round(fps)} FPS`;
         document.getElementById('hudDPS').innerText = `${Math.round(dps)} DPS`;
 
-        // Update Dual Weapon Cards
         const wep1 = player.weapons[0];
         const wep2 = player.weapons[1];
         const card1 = document.getElementById('hudWeaponPrimary');
@@ -161,26 +210,41 @@ export class UIManager {
         const container = document.getElementById('perkCardsContainer');
         perkModal.classList.remove('hidden');
 
-        const perks = PerkManager.getRandomPerks(3);
-        let html = '';
-        perks.forEach((p, idx) => {
-            html += `
-                <div class="perk-card" data-idx="${idx}">
-                    <div class="perk-icon">${p.icon}</div>
-                    <div class="perk-name">${p.name}</div>
-                    <div class="perk-desc">${p.desc}</div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-
-        container.querySelectorAll('.perk-card').forEach((card, i) => {
-            card.addEventListener('click', () => {
-                PerkManager.applyPerk(player, perks[i]);
-                perkModal.classList.add('hidden');
-                if (onSelectCallback) onSelectCallback();
+        const populate = () => {
+            const perks = PerkManager.getRandomPerks(3);
+            let html = '';
+            perks.forEach((p, idx) => {
+                html += `
+                    <div class="perk-card" data-idx="${idx}">
+                        <div class="perk-icon">${p.icon}</div>
+                        <div class="perk-name">${p.name}</div>
+                        <div class="perk-desc">${p.desc}</div>
+                    </div>
+                `;
             });
-        });
+            container.innerHTML = html;
+
+            container.querySelectorAll('.perk-card').forEach((card, i) => {
+                card.addEventListener('click', () => {
+                    PerkManager.applyPerk(player, perks[i]);
+                    perkModal.classList.add('hidden');
+                    if (onSelectCallback) onSelectCallback();
+                });
+            });
+        };
+
+        populate();
+
+        // Reroll & Skip Handlers
+        document.getElementById('btnRerollPerks').onclick = () => {
+            populate();
+        };
+
+        document.getElementById('btnSkipPerks').onclick = () => {
+            player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.2);
+            perkModal.classList.add('hidden');
+            if (onSelectCallback) onSelectCallback();
+        };
     }
 }
 

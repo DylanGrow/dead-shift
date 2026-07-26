@@ -1,5 +1,5 @@
 /**
- * DEAD SHIFT - Main Game Loop & Core Engine State Machine
+ * DEAD SHIFT - Main Game Loop & Production State Machine
  */
 import { Player } from './player.js';
 import { Weapon, WEAPON_REGISTRY } from './weapon.js';
@@ -33,6 +33,7 @@ class GameEngine {
         this.totalDamageDealt = 0;
         this.dpsTimer = 0;
         this.selectedCharId = 'commando';
+        this.selectedMapId = 'downtown';
 
         this.camera = { x: 0, y: 0 };
         this.player = null;
@@ -43,6 +44,7 @@ class GameEngine {
 
         this.enemies = [];
         this.projectiles = [];
+        this.enemyProjectiles = [];
         this.lootItems = [];
         this.boss = null;
 
@@ -86,6 +88,16 @@ class GameEngine {
             });
         });
         document.getElementById('btnCharBack').addEventListener('click', () => this.showMenu());
+        document.getElementById('btnMapSelect').addEventListener('click', () => {
+            this.state = 'MAP_SELECT';
+            document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('mapSelectScreen').classList.add('active');
+            UIManager.renderMapSelect((mapId) => {
+                this.selectedMapId = mapId;
+                this.showMenu();
+            });
+        });
+        document.getElementById('btnMapBack').addEventListener('click', () => this.showMenu());
         document.getElementById('btnShop').addEventListener('click', () => {
             this.state = 'SHOP';
             document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
@@ -93,6 +105,13 @@ class GameEngine {
             ShopManager.renderShop(document.getElementById('shopContentArea'));
         });
         document.getElementById('btnShopBack').addEventListener('click', () => this.showMenu());
+        document.getElementById('btnAchievements').addEventListener('click', () => {
+            this.state = 'ACHIEVEMENTS';
+            document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('achievementsScreen').classList.add('active');
+            UIManager.renderAchievements();
+        });
+        document.getElementById('btnAchievementsBack').addEventListener('click', () => this.showMenu());
         document.getElementById('btnSettings').addEventListener('click', () => {
             document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
             document.getElementById('settingsScreen').classList.add('active');
@@ -121,28 +140,29 @@ class GameEngine {
         document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
         document.getElementById('hud').classList.add('active');
 
-        this.map = new MapEnvironment(MAPS_REGISTRY[0]);
+        const mapDef = MAPS_REGISTRY.find(m => m.id === this.selectedMapId) || MAPS_REGISTRY[0];
+        this.map = new MapEnvironment(mapDef);
         this.spatialGrid = new SpatialGrid(this.map.width, this.map.height, 128);
 
         this.player = new Player(this.map.width / 2, this.map.height / 2, this.selectedCharId);
         
-        // Character Starting Dual Weapons
         if (this.selectedCharId === 'pyro') {
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[7])); // Flamethrower
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[0])); // Pistol
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[25]));
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[0]));
         } else if (this.selectedCharId === 'ninja') {
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[8])); // Katana
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[2])); // Vector SMG
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[33]));
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[4]));
         } else if (this.selectedCharId === 'demolitionist') {
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[6])); // RPG-7
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[3])); // Shotgun
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[20]));
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[8]));
         } else {
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[0])); // M1911 Pistol
-            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[4])); // AK-47 Rifle
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[0]));
+            this.player.weapons.push(new Weapon(WEAPON_REGISTRY[12]));
         }
 
         this.enemies = [];
         this.projectiles = [];
+        this.enemyProjectiles = [];
         this.lootItems = [];
         this.boss = null;
         this.wave = 1;
@@ -179,7 +199,7 @@ class GameEngine {
         audioManager.stopMusic();
         saveManager.addCoins(this.player.coins);
         document.getElementById('gameOverModal').classList.remove('hidden');
-        document.getElementById('gameOverSubtitle').innerText = `Survived Wave ${this.wave} | Coins Earned: ${this.player.coins}`;
+        document.getElementById('gameOverSubtitle').innerText = `Survived Wave ${this.wave} in ${this.map.name} | Coins Earned: ${this.player.coins}`;
     }
 
     spawnWaveEnemies(dt) {
@@ -240,7 +260,7 @@ class GameEngine {
             newProjs.forEach(p => this.projectiles.push(p));
         }
 
-        // Update Projectiles
+        // Update Player Projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const p = this.projectiles[i];
             p.update(dt);
@@ -250,7 +270,6 @@ class GameEngine {
                 continue;
             }
 
-            // Check Explosive Barrel Collision
             this.map.barrels.forEach(barrel => {
                 if (barrel.active && Collision.circleCircle(p.x, p.y, p.radius, barrel.x, barrel.y, barrel.radius)) {
                     barrel.takeDamage(p.damage);
@@ -258,7 +277,6 @@ class GameEngine {
                 }
             });
 
-            // Check Boss Collision
             if (this.boss && Collision.circleCircle(p.x, p.y, p.radius, this.boss.x, this.boss.y, this.boss.radius)) {
                 this.boss.takeDamage(p.damage);
                 UIManager.spawnFloatingText(p.x - this.camera.x, p.y - this.camera.y, p.damage, p.isCrit ? '#f59e0b' : '#ffffff', p.isCrit);
@@ -267,11 +285,11 @@ class GameEngine {
                     particleManager.spawnExplosion(this.boss.x, this.boss.y, 100);
                     this.boss = null;
                     this.player.coins += 500;
+                    saveManager.data.stats.bossKills = (saveManager.data.stats.bossKills || 0) + 1;
                 }
                 continue;
             }
 
-            // Check Enemy Collision
             const nearbyEnemies = this.spatialGrid.getNearby(p.x, p.y, 64);
             for (let j = 0; j < nearbyEnemies.length; j++) {
                 const enemy = nearbyEnemies[j];
@@ -294,15 +312,41 @@ class GameEngine {
             }
         }
 
+        // Update Enemy Spit Projectiles
+        for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
+            const ep = this.enemyProjectiles[i];
+            ep.x += ep.vx * dt * 60;
+            ep.y += ep.vy * dt * 60;
+            ep.life -= dt;
+
+            if (ep.life <= 0) {
+                this.enemyProjectiles.splice(i, 1);
+                continue;
+            }
+
+            if (Collision.circleCircle(ep.x, ep.y, 5, this.player.x, this.player.y, this.player.radius)) {
+                this.player.takeDamage(ep.damage);
+                this.enemyProjectiles.splice(i, 1);
+            }
+        }
+
         // Update Enemies
         this.spawnWaveEnemies(dt);
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const enemy = this.enemies[i];
-            enemy.update(dt, this.player, this.spatialGrid);
+            enemy.update(dt, this.player, this.spatialGrid, (x, y, angle, speed, damage, color) => {
+                this.enemyProjectiles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    damage, color, life: 3.0
+                });
+            });
 
             if (enemy.health <= 0) {
                 audioManager.playHit();
                 particleManager.spawnBlood(enemy.x, enemy.y, enemy.rotation, 12);
+                saveManager.data.stats.totalKills = (saveManager.data.stats.totalKills || 0) + 1;
                 
                 this.lootItems.push(new LootItem(enemy.x, enemy.y, 'xp', enemy.xpValue, '#c084fc'));
                 if (Math.random() < enemy.coinDropChance) {
@@ -313,14 +357,12 @@ class GameEngine {
             }
         }
 
-        // Update Boss
         if (this.boss) {
             this.boss.update(dt, this.player, (type, x, y) => {
                 this.enemies.push(new Enemy(ENEMY_REGISTRY[1], x, y));
             });
         }
 
-        // Update Loot
         for (let i = this.lootItems.length - 1; i >= 0; i--) {
             const item = this.lootItems[i];
             item.update(dt, this.player);
@@ -362,19 +404,16 @@ class GameEngine {
         const scaleX = mw / this.map.width;
         const scaleY = mh / this.map.height;
 
-        // Player dot (Blue)
         mctx.fillStyle = '#38bdf8';
         mctx.beginPath();
         mctx.arc(this.player.x * scaleX, this.player.y * scaleY, 3, 0, Math.PI * 2);
         mctx.fill();
 
-        // Enemies (Red)
         mctx.fillStyle = '#ef4444';
         this.enemies.forEach(e => {
             mctx.fillRect(e.x * scaleX, e.y * scaleY, 2, 2);
         });
 
-        // Boss (Large Amber)
         if (this.boss) {
             mctx.fillStyle = '#f59e0b';
             mctx.beginPath();
@@ -399,6 +438,15 @@ class GameEngine {
             this.supplyDropManager.draw(this.ctx);
             particleManager.draw(this.ctx);
             this.projectiles.forEach(p => p.draw(this.ctx));
+
+            // Render Enemy Projectiles
+            this.enemyProjectiles.forEach(ep => {
+                this.ctx.fillStyle = ep.color || '#22c55e';
+                this.ctx.beginPath();
+                this.ctx.arc(ep.x, ep.y, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+            });
+
             this.enemies.forEach(e => e.draw(this.ctx));
 
             if (this.boss) this.boss.draw(this.ctx);

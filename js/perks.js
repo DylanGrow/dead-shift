@@ -1,5 +1,5 @@
 /**
- * DEAD SHIFT - 150+ Perks & Powerups System
+ * DEAD SHIFT - 150+ Perks, Augmentations & Build Engine
  */
 import { WEAPON_REGISTRY, Weapon } from './weapon.js';
 
