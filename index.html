@@ -3,25 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Dead Shift - Top-down zombie survival roguelite browser game. Fight hordes, upgrade 40+ weapons, unlock 150+ perks across 15 handcrafted maps.">
-    <meta name="keywords" content="Dead Shift, zombie game, roguelite, survivor, HTML5 game, canvas game, action, survival">
+    <meta name="description" content="Dead Shift - AAA Top-down zombie survival roguelite browser game. Fight hordes with 40+ weapons, 150+ perks across 15 handcrafted maps.">
     <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://github.com">
-    <meta property="og:title" content="Dead Shift - Top-Down Zombie Survival Roguelite">
-    <meta property="og:description" content="Survive endless undead hordes with 40+ weapons, 150+ perks, and 15 maps in this high-octane browser roguelite.">
-    <meta property="og:image" content="assets/icons/icon-512.png">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="Dead Shift - Zombie Survival Roguelite">
-    <meta property="twitter:description" content="Survive endless undead hordes with 40+ weapons, 150+ perks, and 15 maps in this high-octane browser roguelite.">
-    <meta property="twitter:image" content="assets/icons/icon-512.png">
-
     <title>DEAD SHIFT - Zombie Survival Roguelite</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
@@ -31,7 +14,7 @@
         <!-- Main Canvas -->
         <canvas id="gameCanvas"></canvas>
 
-        <!-- Dynamic Lighting & Post FX Overlay Canvas -->
+        <!-- Post FX & Lighting Overlay Canvas -->
         <canvas id="fxCanvas"></canvas>
 
         <!-- UI Root Container -->
@@ -40,22 +23,32 @@
             <!-- MAIN MENU -->
             <div id="mainMenu" class="ui-screen active">
                 <div class="logo-container">
-                    <h1 class="glitch-title" data-text="DEAD SHIFT">DEAD SHIFT</h1>
-                    <p class="subtitle">TOP-DOWN ZOMBIE SURVIVAL ROGUELITE</p>
+                    <h1 class="glitch-title">DEAD SHIFT</h1>
+                    <p class="subtitle">AAA TOP-DOWN ZOMBIE SURVIVAL ROGUELITE</p>
                 </div>
                 
                 <div class="menu-buttons">
-                    <button id="btnPlay" class="btn btn-primary btn-large">START RUN</button>
+                    <button id="btnPlay" class="btn btn-primary btn-large">START MISSION</button>
+                    <button id="btnCharacterSelect" class="btn btn-secondary">SELECT OPERATIVE</button>
                     <button id="btnShop" class="btn btn-secondary">ARMORY & UPGRADES</button>
-                    <button id="btnMapSelect" class="btn btn-secondary">MAP SELECT & CHALLENGES</button>
-                    <button id="btnAchievements" class="btn btn-secondary">ACHIEVEMENTS & STATS</button>
-
+                    <button id="btnMapSelect" class="btn btn-secondary">MAP SELECT & MUTATORS</button>
                     <button id="btnSettings" class="btn btn-secondary">SETTINGS & ACCESSIBILITY</button>
                 </div>
 
                 <div class="menu-footer">
-                    <span id="versionTag">v1.0.0 | Pure Client-Side HTML5 Canvas Engine</span>
+                    <span>v1.2.0 AAA Master Edition | Pure Client-Side HTML5 Canvas</span>
                 </div>
+            </div>
+
+            <!-- CHARACTER SELECTION SCREEN -->
+            <div id="characterSelectScreen" class="ui-screen">
+                <div class="screen-header">
+                    <h2>SELECT OPERATIVE</h2>
+                </div>
+                <div class="character-cards-grid" id="characterCardsGrid">
+                    <!-- Dynamic Character Cards -->
+                </div>
+                <button id="btnCharBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
             </div>
 
             <!-- IN-GAME HUD -->
@@ -89,14 +82,20 @@
 
                     <div class="hud-right">
                         <div class="currency-group">
-                            <span class="icon">🪙</span> <span id="hudCoins">0</span>
-                            <span class="icon">🔑</span> <span id="hudKeys">0</span>
-                            <span class="icon">📦</span> <span id="hudTokens">0</span>
+                            <span>🪙 <span id="hudCoins">0</span></span>
+                            <span>🔑 <span id="hudKeys">0</span></span>
+                            <span>📦 <span id="hudTokens">0</span></span>
                         </div>
                         <div class="performance-group">
                             <span id="hudFPS">60 FPS</span> | <span id="hudDPS">0 DPS</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Boss Intro Banner -->
+                <div id="bossIntroBanner" class="boss-intro-banner hidden">
+                    <h1 id="bossIntroTitle">THE ABOMINATION HAS AWAKENED</h1>
+                    <p id="bossIntroSubtitle">BOSS FIGHT INITIATED</p>
                 </div>
 
                 <!-- XP Level Progress Bar -->
@@ -112,22 +111,23 @@
                     <span id="hudEventIcon">🩸</span> <span id="hudEventTitle">BLOOD MOON ACTIVE</span>
                 </div>
 
-                <!-- Weapon & Ammo Display -->
+                <!-- Dual Weapon Cards HUD -->
                 <div class="hud-bottom-right">
-                    <div class="weapon-card" id="hudWeaponCard">
-                        <div class="weapon-rarity" id="hudWeaponRarity">COMMON</div>
-                        <div class="weapon-name" id="hudWeaponName">M1911 PISTOL</div>
-                        <div class="ammo-display">
-                            <span id="hudAmmoCurrent">12</span> / <span id="hudAmmoMax">12</span>
+                    <div class="dual-weapons-container">
+                        <div class="weapon-card active-wep" id="hudWeaponPrimary">
+                            <div class="weapon-slot-badge">PRIMARY [1]</div>
+                            <div class="weapon-rarity" id="hudWep1Rarity">COMMON</div>
+                            <div class="weapon-name" id="hudWep1Name">M1911 PISTOL</div>
+                            <div class="ammo-display"><span id="hudWep1Ammo">12</span> / <span id="hudWep1Max">12</span></div>
                         </div>
-                        <div class="reload-bar-container hidden" id="hudReloadContainer">
-                            <div class="reload-fill" id="hudReloadFill"></div>
+                        <div class="weapon-card inactive-wep" id="hudWeaponSecondary">
+                            <div class="weapon-slot-badge">SECONDARY [2]</div>
+                            <div class="weapon-rarity" id="hudWep2Rarity">EMPTY</div>
+                            <div class="weapon-name" id="hudWep2Name">NONE</div>
+                            <div class="ammo-display"><span id="hudWep2Ammo">0</span> / <span id="hudWep2Max">0</span></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Active Buffs & Perks Icons Bar -->
-                <div class="hud-buffs-bar" id="hudBuffsContainer"></div>
 
                 <!-- Minimap -->
                 <canvas id="minimapCanvas" width="160" height="160"></canvas>
@@ -140,25 +140,12 @@
                     <p class="subtitle">Choose 1 of 3 augmentations to enhance your build</p>
                     
                     <div class="perk-cards-container" id="perkCardsContainer">
-                        <!-- 3 Random Perk Cards injected dynamically -->
+                        <!-- Dynamic Perk Cards -->
                     </div>
 
                     <div class="perk-actions">
                         <button id="btnRerollPerks" class="btn btn-secondary">REROLL (<span id="rerollCount">2</span>)</button>
                         <button id="btnSkipPerks" class="btn btn-secondary">SKIP & HEAL 20%</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUPPLY DROP CRATE INTERACTION MODAL -->
-            <div id="crateModal" class="modal-overlay hidden">
-                <div class="modal-content crate-modal-content">
-                    <h2 id="crateTitle">MILITARY SUPPLY CRATE</h2>
-                    <div class="crate-icon-preview" id="crateIconPreview">📦</div>
-                    <p id="crateDescription">Requires 1 Supply Key to unlock tier 3 weapons and rare components.</p>
-                    <div class="crate-buttons">
-                        <button id="btnOpenCrate" class="btn btn-primary">OPEN CRATE</button>
-                        <button id="btnCloseCrate" class="btn btn-secondary">CANCEL</button>
                     </div>
                 </div>
             </div>
@@ -172,33 +159,28 @@
                     </div>
                 </div>
                 <div class="shop-grid">
-                    <div class="shop-tabs">
-                        <button class="shop-tab active" data-tab="passives">PASSIVE STATS</button>
-                        <button class="shop-tab" data-tab="characters">CHARACTERS</button>
-                        <button class="shop-tab" data-tab="blueprints">WEAPONS</button>
-                    </div>
                     <div class="shop-content-area" id="shopContentArea">
-                        <!-- Shop items injected via shop.js -->
+                        <!-- Shop passives injected -->
                     </div>
                 </div>
                 <button id="btnShopBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
             </div>
 
-            <!-- MAP SELECT & CHALLENGES SCREEN -->
+            <!-- MAP SELECT & MUTATORS SCREEN -->
             <div id="mapSelectScreen" class="ui-screen">
                 <div class="screen-header">
                     <h2>TACTICAL MAP SELECTION</h2>
                 </div>
                 <div class="map-cards-grid" id="mapCardsGrid">
-                    <!-- 15 maps injected dynamically -->
+                    <!-- Map cards injected dynamically -->
                 </div>
                 <div class="map-settings-panel">
                     <h3>DIFFICULTY MUTATORS</h3>
                     <div class="difficulty-selector">
-                        <button class="diff-btn active" data-diff="normal">NORMAL</button>
-                        <button class="diff-btn" data-diff="hard">HARD (+50% COINS)</button>
-                        <button class="diff-btn" data-diff="nightmare">NIGHTMARE (+100% COINS)</button>
-                        <button class="diff-btn" data-diff="insane">INSANE (+200% COINS)</button>
+                        <button class="diff-btn active" data-diff="normal">NORMAL (1.0x)</button>
+                        <button class="diff-btn" data-diff="hard">HARD (1.5x COINS)</button>
+                        <button class="diff-btn" data-diff="nightmare">NIGHTMARE (2.0x COINS)</button>
+                        <button class="diff-btn" data-diff="insane">INSANE (3.0x COINS)</button>
                     </div>
                 </div>
                 <button id="btnMapBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
@@ -226,26 +208,21 @@
 
                     <div class="setting-group">
                         <h3>ACCESSIBILITY & GRAPHICS</h3>
-                        <label><input type="checkbox" id="settingBloodToggle" checked> Enable Blood Splatters</label>
+                        <label><input type="checkbox" id="settingBloodToggle" checked> Enable Persistent Blood</label>
                         <label><input type="checkbox" id="settingScreenShake" checked> Enable Screen Shake</label>
                         <label><input type="checkbox" id="settingHighContrast"> High Contrast Mode</label>
-                        <label><input type="checkbox" id="settingColorblind"> Colorblind Mode</label>
-                        <label><input type="checkbox" id="settingReduceMotion"> Reduce Motion Effects</label>
+                        <label><input type="checkbox" id="settingFlashlight" checked> Enable Dynamic Flashlight</label>
                     </div>
                 </div>
                 <button id="btnSettingsBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
             </div>
 
-            <!-- GAME OVER / MISSION COMPLETE MODAL -->
+            <!-- GAME OVER MODAL -->
             <div id="gameOverModal" class="modal-overlay hidden">
                 <div class="modal-content game-over-content">
                     <h1 id="gameOverTitle" class="death-title">DEFEATED</h1>
                     <p id="gameOverSubtitle">Survived 12 Waves in Downtown Metro</p>
                     
-                    <div class="run-summary-stats" id="runSummaryStats">
-                        <!-- Injected run stats (Kills, DPS, Level, Coins Earned) -->
-                    </div>
-
                     <div class="modal-buttons">
                         <button id="btnRetryRun" class="btn btn-primary btn-large">TRY AGAIN</button>
                         <button id="btnReturnMenu" class="btn btn-secondary">MAIN MENU</button>
@@ -259,21 +236,9 @@
                     <h2>MISSION PAUSED</h2>
                     <div class="pause-buttons">
                         <button id="btnResume" class="btn btn-primary">RESUME</button>
-                        <button id="btnPauseSettings" class="btn btn-secondary">SETTINGS</button>
-                        <button id="btnAbandonRun" class="btn btn-danger">ABANDON RUN</button>
+                        <button id="btnReturnMenuPause" class="btn btn-secondary">MAIN MENU</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- ON-SCREEN MOBILE TOUCH CONTROLS OVERLAY -->
-            <div id="touchControls" class="touch-overlay hidden">
-                <div id="touchJoystickLeft" class="touch-joystick">
-                    <div id="touchStickLeft" class="stick-knob"></div>
-                </div>
-                <div id="touchJoystickRight" class="touch-joystick">
-                    <div id="touchStickRight" class="stick-knob"></div>
-                </div>
-                <button id="touchDashBtn" class="touch-btn">DASH</button>
             </div>
 
         </div>

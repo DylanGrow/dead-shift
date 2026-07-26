@@ -1,6 +1,24 @@
 /**
- * DEAD SHIFT - High-Performance Canvas Particle System & Post-FX
+ * DEAD SHIFT - High-Performance Canvas Particle System, Decals & Post-FX
  */
+
+class Decal {
+    constructor(x, y, radius, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+}
 
 class Particle {
     constructor() {
@@ -14,7 +32,7 @@ class Particle {
         this.alpha = 1;
         this.life = 1;
         this.maxLife = 1;
-        this.shape = 'circle'; // 'circle', 'square', 'spark', 'splatter'
+        this.shape = 'circle';
     }
 
     init(x, y, vx, vy, size, color, maxLife, shape = 'circle') {
@@ -58,6 +76,9 @@ class Particle {
             ctx.shadowColor = this.color;
             ctx.shadowBlur = 8;
             ctx.fill();
+        } else if (this.shape === 'casing') {
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(this.x, this.y, 4, 2);
         } else {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -70,6 +91,8 @@ class Particle {
 export class ParticleManager {
     constructor(poolSize = 1000) {
         this.pool = Array.from({ length: poolSize }, () => new Particle());
+        this.decals = [];
+        this.maxDecals = 300;
         this.shakeTimer = 0;
         this.shakeIntensity = 0;
     }
@@ -90,6 +113,14 @@ export class ParticleManager {
         }
     }
 
+    spawnCasing(x, y, angle) {
+        const casingAngle = angle - Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+        const spd = Math.random() * 3 + 2;
+        const vx = Math.cos(casingAngle) * spd;
+        const vy = Math.sin(casingAngle) * spd;
+        this.spawn(x, y, vx, vy, 3, '#f59e0b', 0.6, 'casing');
+    }
+
     spawnBlood(x, y, angle, count = 15) {
         for (let i = 0; i < count; i++) {
             const spread = (Math.random() - 0.5) * 1.2;
@@ -100,6 +131,10 @@ export class ParticleManager {
             const color = Math.random() > 0.3 ? '#dc2626' : '#991b1b';
             this.spawn(x, y, vx, vy, size, color, Math.random() * 0.6 + 0.4, 'circle');
         }
+
+        // Add persistent blood decal to floor
+        if (this.decals.length >= this.maxDecals) this.decals.shift();
+        this.decals.push(new Decal(x + (Math.random() - 0.5) * 20, y + (Math.random() - 0.5) * 20, Math.random() * 12 + 6, 'rgba(153, 27, 27, 0.45)'));
     }
 
     spawnExplosion(x, y, radius = 40) {
@@ -130,6 +165,10 @@ export class ParticleManager {
             const ry = (Math.random() - 0.5) * this.shakeIntensity * 2;
             ctx.translate(rx, ry);
         }
+    }
+
+    drawDecals(ctx) {
+        this.decals.forEach(d => d.draw(ctx));
     }
 
     draw(ctx) {

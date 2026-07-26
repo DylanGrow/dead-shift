@@ -15,13 +15,12 @@ export class Projectile {
         this.radius = 4;
         this.damage = 10;
         this.isCrit = false;
-        this.element = null; // 'burn', 'freeze', 'poison', 'lightning', 'bleed'
+        this.element = null;
         this.pierce = 0;
         this.ricochet = 0;
         this.knockback = 1;
         this.life = 2.0;
         this.color = '#ffff00';
-        this.owner = null;
         this.isExplosive = false;
         this.explosionRadius = 0;
     }
@@ -75,7 +74,7 @@ export class Weapon {
         this.category = def.category;
         this.rarity = def.rarity || 'Common';
         this.damage = def.damage || 20;
-        this.fireRate = def.fireRate || 4; // shots per sec
+        this.fireRate = def.fireRate || 4;
         this.clipSize = def.clipSize || 12;
         this.ammo = this.clipSize;
         this.reloadTime = def.reloadTime || 1.5;
@@ -83,7 +82,7 @@ export class Weapon {
         this.reloadTimer = 0;
 
         this.projSpeed = def.projSpeed || 14;
-        this.spread = def.spread || 0.05; // radians
+        this.spread = def.spread || 0.05;
         this.projCount = def.projCount || 1;
         this.pierce = def.pierce || 0;
         this.ricochet = def.ricochet || 0;
@@ -115,15 +114,17 @@ export class Weapon {
 
         this.ammo--;
         this.cooldownTimer = 1 / (this.fireRate * player.fireRate);
-        this.recoilOffset = 6;
+        this.recoilOffset = 8;
 
         audioManager.playShot(this.audioType);
         particleManager.addScreenShake(this.isExplosive ? 10 : 3, 0.1);
 
-        // Spawn Muzzle Flash
         const barrelX = player.x + Math.cos(player.rotation) * (player.radius + this.length);
         const barrelY = player.y + Math.sin(player.rotation) * (player.radius + this.length);
+        
+        // Spawn Muzzle Flash & Eject Shell Casing
         particleManager.spawnBurst(barrelX, barrelY, '#fef08a', 5, 3, 2, 'spark');
+        particleManager.spawnCasing(player.x, player.y, player.rotation);
 
         const projectiles = [];
         for (let i = 0; i < this.projCount; i++) {
@@ -180,45 +181,15 @@ export class Weapon {
     }
 }
 
-// --- 40 WEAPON DEFINITIONS REGISTRY ---
 export const WEAPON_REGISTRY = [
-    // 1. Pistols
     { id: 'pistol_m1911', name: 'M1911 Pistol', category: 'Pistol', rarity: 'Common', damage: 25, fireRate: 3.5, clipSize: 12, reloadTime: 1.2, color: '#94a3b8', audioType: 'pistol' },
     { id: 'pistol_deagle', name: 'Desert Eagle', category: 'Pistol', rarity: 'Rare', damage: 65, fireRate: 2.0, clipSize: 7, reloadTime: 1.6, knockback: 2.5, color: '#f59e0b', audioType: 'sniper' },
-    { id: 'pistol_revolver', name: '.44 Revolver', category: 'Pistol', rarity: 'Uncommon', damage: 50, fireRate: 2.2, clipSize: 6, reloadTime: 1.8, pierce: 1, color: '#e2e8f0', audioType: 'pistol' },
-    { id: 'pistol_dual_beretta', name: 'Dual Berettas', category: 'Pistol', rarity: 'Rare', damage: 22, fireRate: 7.0, clipSize: 30, projCount: 2, reloadTime: 1.4, color: '#60a5fa', audioType: 'pistol' },
-
-    // 2. SMGs
     { id: 'smg_vector', name: 'Vector SMG', category: 'SMG', rarity: 'Uncommon', damage: 16, fireRate: 14.0, clipSize: 35, reloadTime: 1.3, spread: 0.12, color: '#38bdf8', audioType: 'pistol' },
-    { id: 'smg_mp5', name: 'MP5 Submachine', category: 'SMG', rarity: 'Common', damage: 18, fireRate: 10.0, clipSize: 30, reloadTime: 1.2, color: '#94a3b8', audioType: 'pistol' },
-    { id: 'smg_p90', name: 'P90 Shredder', category: 'SMG', rarity: 'Rare', damage: 20, fireRate: 12.0, clipSize: 50, reloadTime: 1.5, color: '#a855f7', audioType: 'pistol' },
-
-    // 3. Shotguns
     { id: 'shotgun_pump', name: 'Pump Action Shotgun', category: 'Shotgun', rarity: 'Common', damage: 14, fireRate: 1.2, projCount: 6, spread: 0.25, clipSize: 8, reloadTime: 2.2, knockback: 3, color: '#94a3b8', audioType: 'shotgun' },
-    { id: 'shotgun_aa12', name: 'AA-12 Auto Shotgun', category: 'Shotgun', rarity: 'Epic', damage: 18, fireRate: 3.5, projCount: 8, spread: 0.3, clipSize: 20, reloadTime: 2.5, color: '#a855f7', audioType: 'shotgun' },
-    { id: 'shotgun_sawed_off', name: 'Sawed-Off Shotgun', category: 'Shotgun', rarity: 'Uncommon', damage: 22, fireRate: 1.0, projCount: 10, spread: 0.4, clipSize: 2, reloadTime: 1.0, knockback: 4, color: '#4ade80', audioType: 'shotgun' },
-
-    // 4. Rifles
     { id: 'rifle_ak47', name: 'AK-47 Assault Rifle', category: 'Rifle', rarity: 'Common', damage: 32, fireRate: 6.5, clipSize: 30, reloadTime: 1.5, color: '#94a3b8', audioType: 'pistol' },
-    { id: 'rifle_m4a1', name: 'M4A1 Carbine', category: 'Rifle', rarity: 'Uncommon', damage: 28, fireRate: 8.0, clipSize: 30, reloadTime: 1.4, spread: 0.04, color: '#4ade80', audioType: 'pistol' },
-
-    // 5. Snipers
     { id: 'sniper_barrett', name: 'Barrett .50 Cal', category: 'Sniper', rarity: 'Epic', damage: 220, fireRate: 0.8, clipSize: 5, reloadTime: 2.8, pierce: 4, knockback: 5, color: '#a855f7', audioType: 'sniper' },
-    { id: 'sniper_dmr', name: 'Semi-Auto DMR', category: 'Sniper', rarity: 'Rare', damage: 90, fireRate: 2.5, clipSize: 10, reloadTime: 1.8, pierce: 2, color: '#3b82f6', audioType: 'sniper' },
-
-    // 6. Rockets & Explosives
     { id: 'rocket_rpg', name: 'RPG-7 Rocket Launcher', category: 'Rocket Launcher', rarity: 'Epic', damage: 180, fireRate: 0.6, clipSize: 1, reloadTime: 2.5, isExplosive: true, explosionRadius: 80, color: '#f59e0b', audioType: 'shotgun' },
-    { id: 'rocket_hydra', name: 'Hydra Multi-Rocket', category: 'Rocket Launcher', rarity: 'Legendary', damage: 120, fireRate: 1.5, projCount: 3, spread: 0.2, clipSize: 4, reloadTime: 3.0, isExplosive: true, explosionRadius: 60, color: '#f97316', audioType: 'shotgun' },
-
-    // 7. Flamethrowers & Energy
     { id: 'flamethrower', name: 'Pyro Flamethrower', category: 'Flamethrower', rarity: 'Rare', damage: 12, fireRate: 18.0, clipSize: 100, reloadTime: 2.5, element: 'burn', spread: 0.35, color: '#ef4444', audioType: 'laser' },
-    { id: 'laser_rifle', name: 'Continuous Laser Cannon', category: 'Laser', rarity: 'Epic', damage: 24, fireRate: 20.0, clipSize: 80, reloadTime: 2.0, element: 'lightning', color: '#38bdf8', audioType: 'laser' },
-    { id: 'plasma_blaster', name: 'Plasma Energy Blaster', category: 'Energy', rarity: 'Rare', damage: 45, fireRate: 4.0, clipSize: 18, reloadTime: 1.6, element: 'poison', color: '#22c55e', audioType: 'laser' },
-
-    // 8. Melee
     { id: 'katana_ronin', name: 'Ronin Katana', category: 'Katana', rarity: 'Rare', damage: 85, fireRate: 2.5, projCount: 1, length: 30, width: 4, clipSize: 999, reloadTime: 0, color: '#c084fc', audioType: 'melee' },
-    { id: 'chainsaw_ripper', name: 'Ripper Chainsaw', category: 'Chainsaw', rarity: 'Epic', damage: 30, fireRate: 15.0, projCount: 1, length: 24, width: 10, clipSize: 999, reloadTime: 0, color: '#ef4444', audioType: 'melee' },
-
-    // 9. Mythic / Legendary
     { id: 'mythic_doomsday', name: 'Doomsday Quantum Cannon', category: 'Legendary Weapons', rarity: 'Mythic', damage: 450, fireRate: 1.0, projCount: 5, spread: 0.25, clipSize: 10, reloadTime: 2.0, isExplosive: true, explosionRadius: 120, element: 'lightning', color: '#f97316', audioType: 'sniper' }
 ];

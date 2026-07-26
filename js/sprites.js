@@ -1,42 +1,72 @@
 /**
- * DEAD SHIFT - Procedural Canvas Vector Sprite Engine
- * Generates crisp, flat-vector graphics for player, weapons, zombies, bosses, and environmental props.
+ * DEAD SHIFT - Procedural Canvas Vector Sprite Engine & Dynamic Lighting
  */
 
 export class SpriteRenderer {
-    // --- DRAW PLAYER ---
+    // --- DRAW DYNAMIC FLASHLIGHT CONE ---
+    static drawFlashlightCone(ctx, player) {
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(player.rotation);
+
+        const coneAngle = Math.PI / 4; // 45 degree cone
+        const coneDistance = 450;
+
+        const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, coneDistance);
+        grad.addColorStop(0, 'rgba(255, 255, 230, 0.35)');
+        grad.addColorStop(0.5, 'rgba(255, 255, 200, 0.15)');
+        grad.addColorStop(1, 'rgba(255, 255, 180, 0)');
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, coneDistance, -coneAngle / 2, coneAngle / 2);
+        ctx.closePath();
+
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // --- DRAW PLAYER WITH CHARACTER CLASS SPECIFICS ---
     static drawPlayer(ctx, player, isHighContrast = false) {
         ctx.save();
         ctx.translate(player.x, player.y);
         ctx.rotate(player.rotation);
 
-        // Body Glow / Shadow
-        ctx.shadowColor = isHighContrast ? '#ffffff' : '#3b82f6';
-        ctx.shadowBlur = 12;
+        // Player Shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+        ctx.shadowOffsetY = 6;
+        ctx.shadowBlur = 8;
 
-        // Player Outer Body Circle
+        // Character Class Color Accents
+        let classColor = '#3b82f6';
+        if (player.charClass === 'pyro') classColor = '#ef4444';
+        if (player.charClass === 'ninja') classColor = '#c084fc';
+        if (player.charClass === 'demolitionist') classColor = '#f59e0b';
+
+        // Outer Body Circle
         ctx.beginPath();
         ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
         ctx.fillStyle = isHighContrast ? '#ffffff' : '#1e293b';
         ctx.fill();
         ctx.lineWidth = 3;
-        ctx.strokeStyle = isHighContrast ? '#000000' : '#3b82f6';
+        ctx.strokeStyle = isHighContrast ? '#000000' : classColor;
         ctx.stroke();
 
-        // Player Armor Vest Overlay
+        // Inner Tactical Vest Overlay
         ctx.beginPath();
         ctx.arc(0, 0, player.radius * 0.65, 0, Math.PI * 2);
-        ctx.fillStyle = '#2563eb';
+        ctx.fillStyle = classColor;
         ctx.fill();
 
-        // Player Tactical Helmet / Visor
+        // Tactical Helmet / Visor
         ctx.beginPath();
-        ctx.arc(player.radius * 0.3, 0, 4, 0, Math.PI * 2);
+        ctx.arc(player.radius * 0.35, 0, 4, 0, Math.PI * 2);
         ctx.fillStyle = '#60a5fa';
         ctx.fill();
 
-        // Hands holding weapon
-        ctx.fillStyle = '#1d4ed8';
+        // Hands
+        ctx.fillStyle = classColor;
         ctx.beginPath();
         ctx.arc(player.radius * 0.7, -player.radius * 0.5, 4, 0, Math.PI * 2);
         ctx.arc(player.radius * 0.7, player.radius * 0.5, 4, 0, Math.PI * 2);
@@ -44,13 +74,27 @@ export class SpriteRenderer {
 
         ctx.restore();
 
-        // Shield Aura (if active)
+        // Reload Progress Ring Indicator
+        const activeWep = player.getActiveWeapon();
+        if (activeWep && activeWep.isReloading) {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            const progress = 1 - (activeWep.reloadTimer / (activeWep.reloadTime / player.reloadSpeed));
+            ctx.beginPath();
+            ctx.arc(0, 0, player.radius + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Shield Aura
         if (player.shield > 0) {
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.beginPath();
             ctx.arc(0, 0, player.radius + 6, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
             ctx.lineWidth = 2;
             ctx.setLineDash([6, 4]);
             ctx.stroke();
@@ -66,7 +110,6 @@ export class SpriteRenderer {
         ctx.translate(player.x, player.y);
         ctx.rotate(player.rotation + (weapon.recoilAngle || 0));
 
-        // Rarity Color Glow
         let rarityColor = '#94a3b8';
         if (weapon.rarity === 'Uncommon') rarityColor = '#22c55e';
         if (weapon.rarity === 'Rare') rarityColor = '#3b82f6';
@@ -75,14 +118,14 @@ export class SpriteRenderer {
         if (weapon.rarity === 'Mythic') rarityColor = '#f97316';
 
         ctx.shadowColor = rarityColor;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 10;
 
-        // Weapon Barrel
+        // Weapon Body
         ctx.fillStyle = rarityColor;
         const offset = weapon.recoilOffset || 0;
         ctx.fillRect(player.radius * 0.6 - offset, -3, weapon.length || 18, weapon.width || 6);
 
-        // Weapon Sight / Tip
+        // Muzzle Sight Tip
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(player.radius * 0.6 + (weapon.length || 18) - 2 - offset, -2, 3, 4);
 
@@ -95,13 +138,12 @@ export class SpriteRenderer {
         ctx.translate(enemy.x, enemy.y);
         ctx.rotate(enemy.rotation);
 
-        // Flash red on hit
         const isHit = enemy.hitFlashTimer > 0;
 
         ctx.shadowColor = enemy.color || '#ef4444';
         ctx.shadowBlur = enemy.isElite ? 16 : 6;
 
-        // Enemy Outer Circle
+        // Enemy Circle Body
         ctx.beginPath();
         ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
         ctx.fillStyle = isHit ? '#ffffff' : (isHighContrast ? '#ffff00' : (enemy.color || '#991b1b'));
@@ -110,11 +152,11 @@ export class SpriteRenderer {
         ctx.strokeStyle = enemy.isElite ? '#f59e0b' : '#450a0a';
         ctx.stroke();
 
-        // Zombie Arms outstretched
+        // Arms Outstretched
         ctx.fillStyle = isHit ? '#ffffff' : (enemy.color || '#7f1d1d');
         ctx.beginPath();
-        ctx.arc(enemy.radius * 0.8, -enemy.radius * 0.6, 5, 0, Math.PI * 2);
-        ctx.arc(enemy.radius * 0.8, enemy.radius * 0.6, 5, 0, Math.PI * 2);
+        ctx.arc(enemy.radius * 0.85, -enemy.radius * 0.5, 4.5, 0, Math.PI * 2);
+        ctx.arc(enemy.radius * 0.85, enemy.radius * 0.5, 4.5, 0, Math.PI * 2);
         ctx.fill();
 
         // Glowing Eyes
@@ -136,7 +178,6 @@ export class SpriteRenderer {
         ctx.shadowColor = boss.phaseColor || '#ef4444';
         ctx.shadowBlur = 24;
 
-        // Outer Boss Body
         ctx.beginPath();
         ctx.arc(0, 0, boss.radius, 0, Math.PI * 2);
         ctx.fillStyle = boss.hitFlashTimer > 0 ? '#ffffff' : (boss.color || '#450a0a');
@@ -145,22 +186,22 @@ export class SpriteRenderer {
         ctx.strokeStyle = boss.phaseColor || '#f59e0b';
         ctx.stroke();
 
-        // Boss Core spikes / tentacles
+        // Spikes around body
         for (let i = 0; i < 8; i++) {
             const angle = (Math.PI * 2 / 8) * i;
             ctx.save();
             ctx.rotate(angle);
             ctx.beginPath();
             ctx.moveTo(boss.radius, 0);
-            ctx.lineTo(boss.radius + 12, -6);
-            ctx.lineTo(boss.radius + 12, 6);
+            ctx.lineTo(boss.radius + 14, -6);
+            ctx.lineTo(boss.radius + 14, 6);
             ctx.closePath();
             ctx.fillStyle = boss.phaseColor || '#ef4444';
             ctx.fill();
             ctx.restore();
         }
 
-        // Center Eye / Core
+        // Center Glowing Core
         ctx.beginPath();
         ctx.arc(0, 0, boss.radius * 0.35, 0, Math.PI * 2);
         ctx.fillStyle = '#dc2626';
@@ -169,33 +210,6 @@ export class SpriteRenderer {
         ctx.beginPath();
         ctx.arc(0, 0, boss.radius * 0.15, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.restore();
-    }
-
-    // --- DRAW SUPPLY CRATE ---
-    static drawCrate(ctx, crate) {
-        ctx.save();
-        ctx.translate(crate.x, crate.y);
-
-        ctx.shadowColor = crate.color || '#3b82f6';
-        ctx.shadowBlur = 12;
-
-        ctx.fillStyle = crate.color || '#1e293b';
-        ctx.fillRect(-crate.size / 2, -crate.size / 2, crate.size, crate.size);
-
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(-crate.size / 2, -crate.size / 2, crate.size, crate.size);
-
-        // Crate Cross Straps
-        ctx.beginPath();
-        ctx.moveTo(-crate.size / 2, -crate.size / 2);
-        ctx.lineTo(crate.size / 2, crate.size / 2);
-        ctx.moveTo(crate.size / 2, -crate.size / 2);
-        ctx.lineTo(-crate.size / 2, crate.size / 2);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.stroke();
 
         ctx.restore();
     }
