@@ -1,5 +1,5 @@
 /**
- * DEAD SHIFT - Meta-Progression & Shop System
+ * DEAD SHIFT - Meta-Progression & Shop System (Zero-XSS Safe)
  */
 import { saveManager } from './save.js';
 import { audioManager } from './audio.js';
@@ -16,40 +16,63 @@ export const PASSIVE_UPGRADES = [
 
 export class ShopManager {
     static renderShop(container) {
+        if (!container) return;
+        container.replaceChildren();
+
         const coins = saveManager.data.coins;
         const passives = saveManager.data.purchasedPassives;
 
-        let html = '<div class="passives-list">';
+        const shopText = document.getElementById('shopCoinsText');
+        if (shopText) shopText.textContent = String(coins);
+
+        const listDiv = document.createElement('div');
+        listDiv.className = 'passives-list';
+
         PASSIVE_UPGRADES.forEach(upg => {
             const currentLvl = passives[upg.id] || 0;
             const isMax = currentLvl >= upg.maxLevel;
             const cost = upg.cost * (currentLvl + 1);
             const canAfford = coins >= cost && !isMax;
 
-            html += `
-                <div class="shop-item-card">
-                    <div class="shop-item-header">
-                        <span class="shop-item-title">${upg.name}</span>
-                        <span class="shop-item-rank">RANK ${currentLvl}/${upg.maxLevel}</span>
-                    </div>
-                    <p class="shop-item-desc">${upg.desc}</p>
-                    <button class="btn ${canAfford ? 'btn-primary' : 'btn-secondary'}" ${!canAfford ? 'disabled' : ''} data-buy="${upg.id}">
-                        ${isMax ? 'MAXED' : `UPGRADE (${cost} 🪙)`}
-                    </button>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
+            const card = document.createElement('div');
+            card.className = 'shop-item-card';
 
-        // Bind Buy Buttons
-        container.querySelectorAll('button[data-buy]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const upgId = e.currentTarget.getAttribute('data-buy');
-                ShopManager.buyUpgrade(upgId);
+            const header = document.createElement('div');
+            header.className = 'shop-item-header';
+
+            const title = document.createElement('span');
+            title.className = 'shop-item-title';
+            title.textContent = upg.name;
+
+            const rank = document.createElement('span');
+            rank.className = 'shop-item-rank';
+            rank.textContent = `RANK ${currentLvl}/${upg.maxLevel}`;
+
+            header.appendChild(title);
+            header.appendChild(rank);
+
+            const desc = document.createElement('p');
+            desc.className = 'shop-item-desc';
+            desc.textContent = upg.desc;
+
+            const btn = document.createElement('button');
+            btn.className = `btn ${canAfford ? 'btn-primary' : 'btn-secondary'}`;
+            if (!canAfford) btn.setAttribute('disabled', 'true');
+            btn.textContent = isMax ? 'MAXED' : `UPGRADE (${cost} 🪙)`;
+
+            btn.addEventListener('click', () => {
+                ShopManager.buyUpgrade(upg.id);
                 ShopManager.renderShop(container);
             });
+
+            card.appendChild(header);
+            card.appendChild(desc);
+            card.appendChild(btn);
+
+            listDiv.appendChild(card);
         });
+
+        container.appendChild(listDiv);
     }
 
     static buyUpgrade(upgId) {

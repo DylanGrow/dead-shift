@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="description" content="Dead Shift - AAA Mobile Ready Top-down Zombie Survival Roguelite Browser Game. 40+ weapons, 30 enemy types, 150+ perks, 15 maps.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+    <meta name="description" content="Dead Shift - Government Grade Cybersecure & AdBlock Friendly Top-down Zombie Survival Roguelite Browser Game. 40+ weapons, 30 enemy types, 150+ perks, 15 maps.">
     <meta name="theme-color" content="#050b14">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,48 +15,48 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
+    <div id="app" role="main">
         <!-- Main Game Canvas -->
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" aria-label="Game Canvas"></canvas>
 
         <!-- Lighting & Post FX Canvas -->
-        <canvas id="fxCanvas"></canvas>
+        <canvas id="fxCanvas" aria-label="Lighting Canvas"></canvas>
 
         <!-- UI Root Overlay -->
         <div id="uiContainer">
             
             <!-- MAIN MENU -->
-            <div id="mainMenu" class="ui-screen active">
+            <div id="mainMenu" class="ui-screen active" role="region" aria-label="Main Menu">
                 <div class="logo-container">
                     <h1 class="glitch-title">DEAD SHIFT</h1>
-                    <p class="subtitle">MOBILE-READY ZOMBIE SURVIVAL ROGUELITE</p>
+                    <p class="subtitle">CYBERSECURE ZOMBIE SURVIVAL ROGUELITE</p>
                 </div>
                 
                 <div class="menu-buttons">
-                    <button id="btnPlay" class="btn btn-primary btn-large">START MISSION</button>
-                    <button id="btnCharacterSelect" class="btn btn-secondary">SELECT OPERATIVE</button>
-                    <button id="btnMapSelect" class="btn btn-secondary">MAP SELECT & MUTATORS</button>
-                    <button id="btnShop" class="btn btn-secondary">ARMORY & UPGRADES</button>
-                    <button id="btnAchievements" class="btn btn-secondary">ACHIEVEMENTS & STATS</button>
-                    <button id="btnSettings" class="btn btn-secondary">SETTINGS & ACCESSIBILITY</button>
+                    <button id="btnPlay" class="btn btn-primary btn-large" aria-label="Start Mission">START MISSION</button>
+                    <button id="btnCharacterSelect" class="btn btn-secondary" aria-label="Select Operative">SELECT OPERATIVE</button>
+                    <button id="btnMapSelect" class="btn btn-secondary" aria-label="Map Selection">MAP SELECT & MUTATORS</button>
+                    <button id="btnShop" class="btn btn-secondary" aria-label="Armory Upgrades">ARMORY & UPGRADES</button>
+                    <button id="btnAchievements" class="btn btn-secondary" aria-label="Achievements Stats">ACHIEVEMENTS & STATS</button>
+                    <button id="btnSettings" class="btn btn-secondary" aria-label="Settings Accessibility">SETTINGS & ACCESSIBILITY</button>
                 </div>
 
                 <div class="menu-footer">
-                    <span>v2.0 Mobile Gold Edition | Pure Client-Side HTML5 Engine</span>
+                    <span>v2.5 Government Grade Edition | Pure Client-Side Zero CDN Engine</span>
                 </div>
             </div>
 
             <!-- CHARACTER SELECTION SCREEN -->
-            <div id="characterSelectScreen" class="ui-screen">
+            <div id="characterSelectScreen" class="ui-screen" role="region" aria-label="Character Selection">
                 <div class="screen-header">
                     <h2>SELECT OPERATIVE</h2>
                 </div>
                 <div class="character-cards-grid" id="characterCardsGrid"></div>
-                <button id="btnCharBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+                <button id="btnCharBack" class="btn btn-secondary screen-back-btn" aria-label="Return to Main Menu">RETURN TO MENU</button>
             </div>
 
             <!-- MAP SELECT & MUTATORS SCREEN -->
-            <div id="mapSelectScreen" class="ui-screen">
+            <div id="mapSelectScreen" class="ui-screen" role="region" aria-label="Map Selection">
                 <div class="screen-header">
                     <h2>TACTICAL MAP SELECTION</h2>
                 </div>
@@ -63,17 +64,17 @@
                 <div class="map-settings-panel">
                     <h3>DIFFICULTY MUTATORS</h3>
                     <div class="difficulty-selector">
-                        <button class="diff-btn active" data-diff="normal">NORMAL (1.0x)</button>
-                        <button class="diff-btn" data-diff="hard">HARD (1.5x COINS)</button>
-                        <button class="diff-btn" data-diff="nightmare">NIGHTMARE (2.0x COINS)</button>
-                        <button class="diff-btn" data-diff="insane">INSANE (3.0x COINS)</button>
+                        <button class="diff-btn active" data-diff="normal" aria-label="Normal Difficulty">NORMAL (1.0x)</button>
+                        <button class="diff-btn" data-diff="hard" aria-label="Hard Difficulty">HARD (1.5x COINS)</button>
+                        <button class="diff-btn" data-diff="nightmare" aria-label="Nightmare Difficulty">NIGHTMARE (2.0x COINS)</button>
+                        <button class="diff-btn" data-diff="insane" aria-label="Insane Difficulty">INSANE (3.0x COINS)</button>
                     </div>
                 </div>
-                <button id="btnMapBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+                <button id="btnMapBack" class="btn btn-secondary screen-back-btn" aria-label="Return to Main Menu">RETURN TO MENU</button>
             </div>
 
             <!-- SHOP & ARMORY SCREEN -->
-            <div id="shopScreen" class="ui-screen">
+            <div id="shopScreen" class="ui-screen" role="region" aria-label="Armory Meta Progression">
                 <div class="screen-header">
                     <h2>ARMORY & META-PROGRESSION</h2>
                     <div class="currency-group">
@@ -83,20 +84,20 @@
                 <div class="shop-grid">
                     <div class="shop-content-area" id="shopContentArea"></div>
                 </div>
-                <button id="btnShopBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+                <button id="btnShopBack" class="btn btn-secondary screen-back-btn" aria-label="Return to Main Menu">RETURN TO MENU</button>
             </div>
 
             <!-- ACHIEVEMENTS & STATS SCREEN -->
-            <div id="achievementsScreen" class="ui-screen">
+            <div id="achievementsScreen" class="ui-screen" role="region" aria-label="Achievements Screen">
                 <div class="screen-header">
                     <h2>ACHIEVEMENTS & LIFETIME STATS</h2>
                 </div>
                 <div class="achievements-container" id="achievementsContainer"></div>
-                <button id="btnAchievementsBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+                <button id="btnAchievementsBack" class="btn btn-secondary screen-back-btn" aria-label="Return to Main Menu">RETURN TO MENU</button>
             </div>
 
             <!-- IN-GAME HUD -->
-            <div id="hud" class="ui-screen">
+            <div id="hud" class="ui-screen" role="region" aria-label="In Game Heads Up Display">
                 <div class="hud-top">
                     <div class="hud-left">
                         <div class="stat-bar health-bar-container">
@@ -172,10 +173,10 @@
                     </div>
                 </div>
 
-                <canvas id="minimapCanvas" width="140" height="140"></canvas>
+                <canvas id="minimapCanvas" width="140" height="140" aria-label="Minimap Radar"></canvas>
             </div>
 
-            <!-- ON-SCREEN VIRTUAL MOBILE DUAL JOYSTICKS & ACTION BUTTONS -->
+            <!-- ON-SCREEN VIRTUAL MOBILE CONTROLS -->
             <div id="touchOverlay" class="touch-overlay hidden">
                 <div id="touchBaseLeft" class="touch-joystick-base left-joy">
                     <div id="touchStickLeft" class="touch-joystick-knob"></div>
@@ -185,13 +186,13 @@
                     <div id="touchStickRight" class="touch-joystick-knob"></div>
                 </div>
 
-                <button id="touchDashBtn" class="touch-action-btn dash-btn">DASH</button>
-                <button id="touchSwapBtn" class="touch-action-btn swap-btn">SWAP</button>
-                <button id="touchPauseBtn" class="touch-action-btn pause-btn">⏸️</button>
+                <button id="touchDashBtn" class="touch-action-btn dash-btn" aria-label="Dash Action">DASH</button>
+                <button id="touchSwapBtn" class="touch-action-btn swap-btn" aria-label="Swap Weapon">SWAP</button>
+                <button id="touchPauseBtn" class="touch-action-btn pause-btn" aria-label="Pause Game">⏸️</button>
             </div>
 
             <!-- PERK / LEVEL UP SELECTION MODAL -->
-            <div id="perkModal" class="modal-overlay hidden">
+            <div id="perkModal" class="modal-overlay hidden" role="dialog" aria-label="Level Up Perk Selection">
                 <div class="modal-content perk-modal-content">
                     <h2>LEVEL UP! SELECT A PERK</h2>
                     <p class="subtitle">Choose 1 of 3 augmentations to enhance your build</p>
@@ -199,63 +200,63 @@
                     <div class="perk-cards-container" id="perkCardsContainer"></div>
 
                     <div class="perk-actions">
-                        <button id="btnRerollPerks" class="btn btn-secondary">REROLL (<span id="rerollCount">2</span>)</button>
-                        <button id="btnSkipPerks" class="btn btn-secondary">SKIP & HEAL 20%</button>
+                        <button id="btnRerollPerks" class="btn btn-secondary" aria-label="Reroll Perks">REROLL (<span id="rerollCount">2</span>)</button>
+                        <button id="btnSkipPerks" class="btn btn-secondary" aria-label="Skip Perks and Heal">SKIP & HEAL 20%</button>
                     </div>
                 </div>
             </div>
 
             <!-- SETTINGS & ACCESSIBILITY SCREEN -->
-            <div id="settingsScreen" class="ui-screen">
+            <div id="settingsScreen" class="ui-screen" role="region" aria-label="Settings Screen">
                 <div class="screen-header">
                     <h2>SETTINGS & ACCESSIBILITY</h2>
                 </div>
                 <div class="settings-grid">
                     <div class="setting-group">
                         <h3>AUDIO</h3>
-                        <label>Master Volume <input type="range" id="settingMasterVol" min="0" max="100" value="80"></label>
-                        <label>SFX Volume <input type="range" id="settingSFXVol" min="0" max="100" value="80"></label>
-                        <label>Music Volume <input type="range" id="settingMusicVol" min="0" max="100" value="60"></label>
+                        <label>Master Volume <input type="range" id="settingMasterVol" min="0" max="100" value="80" aria-label="Master Volume"></label>
+                        <label>SFX Volume <input type="range" id="settingSFXVol" min="0" max="100" value="80" aria-label="SFX Volume"></label>
+                        <label>Music Volume <input type="range" id="settingMusicVol" min="0" max="100" value="60" aria-label="Music Volume"></label>
                     </div>
 
                     <div class="setting-group">
                         <h3>GAMEPLAY & CONTROLS</h3>
-                        <label><input type="checkbox" id="settingAutoFire"> Enable Auto-Fire</label>
-                        <label><input type="checkbox" id="settingAutoAim"> Enable Auto-Aim Assistance</label>
-                        <label><input type="checkbox" id="settingDamageNumbers" checked> Show Damage Numbers</label>
+                        <label><input type="checkbox" id="settingAutoFire" aria-label="Enable Auto Fire"> Enable Auto-Fire</label>
+                        <label><input type="checkbox" id="settingAutoAim" aria-label="Enable Auto Aim"> Enable Auto-Aim Assistance</label>
+                        <label><input type="checkbox" id="settingDamageNumbers" checked aria-label="Show Damage Numbers"> Show Damage Numbers</label>
                     </div>
 
                     <div class="setting-group">
                         <h3>ACCESSIBILITY & GRAPHICS</h3>
-                        <label><input type="checkbox" id="settingBloodToggle" checked> Enable Persistent Blood</label>
-                        <label><input type="checkbox" id="settingScreenShake" checked> Enable Screen Shake</label>
-                        <label><input type="checkbox" id="settingHighContrast"> High Contrast Mode</label>
-                        <label><input type="checkbox" id="settingFlashlight" checked> Enable Dynamic Flashlight</label>
+                        <label><input type="checkbox" id="settingBloodToggle" checked aria-label="Enable Persistent Blood"> Enable Persistent Blood</label>
+                        <label><input type="checkbox" id="settingScreenShake" checked aria-label="Enable Screen Shake"> Enable Screen Shake</label>
+                        <label><input type="checkbox" id="settingHighContrast" aria-label="Enable High Contrast Mode"> High Contrast Mode</label>
+                        <label><input type="checkbox" id="settingFlashlight" checked aria-label="Enable Dynamic Flashlight"> Enable Dynamic Flashlight</label>
                     </div>
                 </div>
-                <button id="btnSettingsBack" class="btn btn-secondary screen-back-btn">RETURN TO MENU</button>
+                <button id="btnSettingsBack" class="btn btn-secondary screen-back-btn" aria-label="Return to Main Menu">RETURN TO MENU</button>
             </div>
 
             <!-- GAME OVER MODAL -->
-            <div id="gameOverModal" class="modal-overlay hidden">
+            <div id="gameOverModal" class="modal-overlay hidden" role="dialog" aria-label="Game Over Modal">
                 <div class="modal-content game-over-content">
                     <h1 id="gameOverTitle" class="death-title">DEFEATED</h1>
                     <p id="gameOverSubtitle">Survived 12 Waves in Downtown Metro</p>
                     
                     <div class="modal-buttons">
-                        <button id="btnRetryRun" class="btn btn-primary btn-large">TRY AGAIN</button>
-                        <button id="btnReturnMenu" class="btn btn-secondary">MAIN MENU</button>
+                        <button id="btnRetryRun" class="btn btn-primary btn-large" aria-label="Try Again">TRY AGAIN</button>
+                        <button id="btnReturnMenu" class="btn btn-secondary" aria-label="Main Menu">MAIN MENU</button>
                     </div>
                 </div>
             </div>
 
             <!-- PAUSE MENU -->
-            <div id="pauseModal" class="modal-overlay hidden">
+            <div id="pauseModal" class="modal-overlay hidden" role="dialog" aria-label="Pause Menu">
                 <div class="modal-content pause-content">
                     <h2>MISSION PAUSED</h2>
                     <div class="pause-buttons">
-                        <button id="btnResume" class="btn btn-primary">RESUME</button>
-                        <button id="btnReturnMenuPause" class="btn btn-secondary">MAIN MENU</button>
+                        <button id="btnResume" class="btn btn-primary" aria-label="Resume Mission">RESUME</button>
+                        <button id="btnReturnMenuPause" class="btn btn-secondary" aria-label="Return to Main Menu">MAIN MENU</button>
                     </div>
                 </div>
             </div>
